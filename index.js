@@ -29,69 +29,81 @@ function _getSentencesPromise(storyId) {
   });
 }
 
+function __print(fn, exerciseNum, content) {
+  fn(`*** Exercise ${exerciseNum} ***`);
+  fn(content);
+  console.log();
+}
+
+function _log(exerciseNum, content) {
+  __print(console.log, exerciseNum, content);
+}
+
+function _error(exerciseNum, content) {
+  __print(console.error, exerciseNum, content);
+}
+
 // Print stories response using callbacks
-function callbackStories() {
+function callbackStories(cLog, cErr) {
   superagent.get(endpoints.stories).end((err, resp) => {
     if (err) {
-      console.error(err);
+      cErr(err);
     }
 
-    console.log(resp.body.stories);
+    cLog(resp.body.stories);
   });
 }
 
 // Print the first story's sentences using callbacks
-function callbackFirstStorySentences() {
+function callbackFirstStorySentences(cLog, cErr) {
   superagent.get(endpoints.stories).end((err, resp) => {
     if (err) {
-      console.error(err);
+      cErr(err);
     }
     const stories = resp.body.stories;
 
     superagent.get(endpoints.sentences).query({ story_id: stories[0].id }).end((err, resp) => {
       if (err) {
-        console.error(err);
+        cErr(err);
       }
 
-      console.log(resp.body.sentences);
+      cLog(resp.body.sentences);
     });
   });
 }
 
 // Print stories response using promsies
-function promiseStories() {
+function promiseStories(cLog, cErr) {
   _getStoriesPromise()
-    .then(res => console.log(res))
-    .catch(err => console.error(err));
+    .then(res => cLog(res))
+    .catch(err => cErr(err));
 }
 
 // Print the first story's sentences using promises (naive implementation)
-function promiseFirstStorySentences() {
+function promiseFirstStorySentences(cLog, cErr) {
   _getStoriesPromise()
     .then(stories => {
       const firstStory = stories[0];
       _getSentencesPromise(firstStory.id)
-        .then(sentences => {
-          console.log(sentences);
-        })
-        .catch(err => console.error(err));
+        .then(sentences => cLog(sentences))
+        .catch(err => cErr(err));
     })
-    .catch(err => console.error(err));
+    .catch(err => cErr(err));
 }
 
 // Print the first story's sentences using promises (flattened implementation)
-function arePromisesReallyBetterThanCallbacks() {
+function arePromisesReallyBetterThanCallbacks(cLog, cErr) {
   _getStoriesPromise()
     .then(stories => {
       const firstStory = stories[0];
       return _getSentencesPromise(firstStory.id);
     })
-    .then(sentences => console.log(sentences))
-    .catch(err => console.error(err));
+    .then(sentences => cLog(sentences))
+    .catch(err => cErr(err));
 }
 
 // Print all the stories' sentences
-function promisesAllStoriesSentences() {
+function promisesAllStoriesSentences(cLog, cErr) {
   _getStoriesPromise()
     .then(stories => {
       const sentencesPromises = stories.map(story => {
@@ -100,20 +112,25 @@ function promisesAllStoriesSentences() {
 
       return Promise.all(sentencesPromises);
     })
-    .then(sentences => console.log(sentences))
-    .catch(err => console.error(err));
+    .then(sentences => cLog(sentences))
+    .catch(err => cErr(err));
 }
 
 const exercises = [
-  // callbackStories,
-  // callbackFirstStorySentences,
-  // promiseStories,
-  // promiseFirstStorySentences,
-  // arePromisesReallyBetterThanCallbacks,
+  callbackStories,
+  callbackFirstStorySentences,
+  promiseStories,
+  promiseFirstStorySentences,
+  arePromisesReallyBetterThanCallbacks,
   promisesAllStoriesSentences,
 ];
 
-exercises.forEach(fn => fn());
+exercises.forEach((exercise, idx) => {
+  const cLog = content => _log(idx, content);
+  const cErr = content => _error(idx, content);
+
+  exercise(cLog, cErr);
+});
 
 // FIXME: This doesn't really work in practice because of the async nature of
 // these exercises
