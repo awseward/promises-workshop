@@ -1,141 +1,125 @@
-/*
- * Constants
- */
+const superagent = require('superagent');
+
 const endpoints = {
   stories:   'http://liveproxy-rails-example.herokuapp.com/api/v1/stories',
   sentences: 'http://liveproxy-rails-example.herokuapp.com/api/v1/sentences',
 }
 
-function _unfinishedExercise() {
-  console.log(`This exercise has not been completed yet.`);
+function _getStoriesPromise() {
+  return new Promise((resolve, reject) => {
+    superagent.get(endpoints.stories).end((err, resp) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(resp.body.stories);
+      }
+    });
+  });
+}
+
+function _getSentencesPromise(storyId) {
+  return new Promise((resolve, reject) => {
+    superagent.get(endpoints.sentences).query({ story_id: storyId }).end((err, resp) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(resp.body.sentences);
+      }
+    });
+  });
 }
 
 // Print stories response using callbacks
 function callbackStories() {
-  _unfinishedExercise();
-  // TODO
+  superagent.get(endpoints.stories).end((err, resp) => {
+    if (err) {
+      console.error(err);
+    }
+
+    console.log(resp.body.stories);
+  });
 }
 
 // Print the first story's sentences using callbacks
 function callbackFirstStorySentences() {
-  _unfinishedExercise();
-  // TODO
+  superagent.get(endpoints.stories).end((err, resp) => {
+    if (err) {
+      console.error(err);
+    }
+    const stories = resp.body.stories;
+
+    superagent.get(endpoints.sentences).query({ story_id: stories[0].id }).end((err, resp) => {
+      if (err) {
+        console.error(err);
+      }
+
+      console.log(resp.body.sentences);
+    });
+  });
 }
 
 // Print stories response using promsies
 function promiseStories() {
-  _unfinishedExercise();
-  // TODO
+  _getStoriesPromise()
+    .then(res => console.log(res))
+    .catch(err => console.error(err));
 }
 
-// Print the first story's sentences using promises
+// Print the first story's sentences using promises (naive implementation)
 function promiseFirstStorySentences() {
-  _unfinishedExercise();
-  // TODO
+  _getStoriesPromise()
+    .then(stories => {
+      const firstStory = stories[0];
+      _getSentencesPromise(firstStory.id)
+        .then(sentences => {
+          console.log(sentences);
+        })
+        .catch(err => console.error(err));
+    })
+    .catch(err => console.error(err));
 }
 
-// Critically consider your implementation to the last exercise
+// Print the first story's sentences using promises (flattened implementation)
 function arePromisesReallyBetterThanCallbacks() {
-  _unfinishedExercise();
-  // TODO
+  _getStoriesPromise()
+    .then(stories => {
+      const firstStory = stories[0];
+      return _getSentencesPromise(firstStory.id);
+    })
+    .then(sentences => console.log(sentences))
+    .catch(err => console.error(err));
 }
 
 // Print all the stories' sentences
 function promisesAllStoriesSentences() {
-  _unfinishedExercise();
-  // TODO
+  _getStoriesPromise()
+    .then(stories => {
+      const sentencesPromises = stories.map(story => {
+        return _getSentencesPromise(story.id);
+      });
+
+      return Promise.all(sentencesPromises);
+    })
+    .then(sentences => console.log(sentences))
+    .catch(err => console.error(err));
 }
 
 const exercises = [
-  callbackStories,
-  callbackFirstStorySentences,
-  promiseStories,
-  promiseFirstStorySentences,
-  arePromisesReallyBetterThanCallbacks,
+  // callbackStories,
+  // callbackFirstStorySentences,
+  // promiseStories,
+  // promiseFirstStorySentences,
+  // arePromisesReallyBetterThanCallbacks,
   promisesAllStoriesSentences,
 ];
 
-exercises.forEach((fn, idx) => {
-  console.log(`*** Exercise ${idx} ***`);
-  fn();
-  console.log();
-});
+exercises.forEach(fn => fn());
 
-// $(document).ready(function(){
-//   /************************
-//    * Callbacks
-//    *************************/
-
-//   // Exercise 1 log the stories returned from the stories endpoint:
-//   superagent.get(storiesEndpoint).end(function(err, res){
-//     if (err) { console.log(err); }
-//     var stories = res.body.stories;
-//     console.log('A list of stories', stories);
-//   });
-
-//   // Exercise 2
-//   // grab the stories from the first endpoint
-//   // then get the first story's sentences using the sentences endpoint + story_id
-//   // eg: http://liveproxy-rails-example.herokuapp.com/api/v1/sentences?story_id=1
-
-//   superagent.get(storiesEndpoint).end(function(err, res){
-//     if (err) { console.log(err); }
-//     var stories = res.body.stories;
-//     var firstStory = stories[0];
-//     console.log('First story is', firstStory);
-//     superagent.get(sentencesEndpoint).query({story_id: firstStory.id}).end(function(err, res) {
-//       console.log('First story\'s sentences are', res.body);
-//     })
-//   });
-
-
-//   /*************************
-//    * Promises
-//    *************************/
-
-//   // Exercise 1
-//   // Make a promise that loads stories
-//   // Log those stories
-
-//   var loadStoriesES6 = new Promise((resolve,reject) => {
-
-//   });
-
-
-//   loadStoriesES6
-//     .then()
-//     .catch();
-
-//   // Exercise 2
-//   // grab the stories from the first endpoint
-//   // then get the first story's sentences using this endpoint:
-//   // url: http://liveproxy-rails-example.herokuapp.com/api/v1/sentences?story_id=<story_id>
-
-//   function loadSentencesES6(id) {
-//     return new Promise((resolve, reject) => {
-
-//     });
-//   };
-
-//   loadStoriesES6
-//     .then()
-//     .catch();
-
-//   // Exercise 2.5
-//   // Does your promise implementation look like callback hell?
-//   // Flatten it out.
-
-
-//   // Exercise 3
-//   // grab the stories from the first endpoint
-//   // then get the sentences for every story
-//   // then log the story name and the sentences associated to that story
-//   // Use the functions you made in Exercise 2
-//   // Use Promise.all([p1, p2, p3])
-//   // url: http://liveproxy-rails-example.herokuapp.com/api/v1/sentences?story_id=<story_id>
-
-//   loadStoriesES6
-//     .then(/* Use the concept from 2.5 */)
-//     .catch();
-
+// FIXME: This doesn't really work in practice because of the async nature of
+// these exercises
+//
+// exercises.forEach((fn, idx) => {
+//   console.log(`*** Exercise ${idx} ***`);
+//   fn();
+//   console.log();
 // });
