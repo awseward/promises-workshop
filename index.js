@@ -1,10 +1,13 @@
+/*
+ * Constants
+ */
 const endpoints = {
   stories: 'http://liveproxy-rails-example.herokuapp.com/api/v1/stories',
   sentences: 'http://liveproxy-rails-example.herokuapp.com/api/v1/sentences',
 }
-const storiesEndpoint = 'http://liveproxy-rails-example.herokuapp.com/api/v1/stories';
-const sentencesEndpoint = 'http://liveproxy-rails-example.herokuapp.com/api/v1/sentences';
-// superagent.get(/* endpoint */).query({some: query}).end(function(err, res){ });
+// Shim these
+const storiesEndpoint = endpoints.stories;
+const sentencesEndpoint = endpoints.sentences;
 
 $(document).ready(function(){
   /************************
